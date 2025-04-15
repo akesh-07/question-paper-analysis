@@ -42,11 +42,12 @@ def upload_file():
     # Generate PDF report
     output_pdf_name = "grouped_questions.pdf"
     output_pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], output_pdf_name)
-    generate_pdf(groups, output_pdf_path)  # Fixed order of arguments here
+    generate_pdf(groups, output_pdf_path)
 
     return render_template('success.html',
                            filename=", ".join(uploaded_filenames),
-                           result_pdf=output_pdf_name)
+                           result_pdf=output_pdf_name,
+                           groups=groups)  # Pass groups to the template
 
 
 @app.route('/uploads/<filename>')

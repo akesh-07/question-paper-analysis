@@ -5,15 +5,34 @@
     <title>Upload Successful</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
             margin: auto;
             padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .header {
             text-align: center;
+            margin-bottom: 30px;
         }
         .success-message {
             color: #4CAF50;
             font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .uploaded-files {
+            background-color: #e9f7ef;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
         }
         .btn {
             background-color: #4CAF50;
@@ -24,17 +43,90 @@
             cursor: pointer;
             font-size: 16px;
             text-decoration: none;
-            margin: 10px;
         }
         .btn:hover {
             background-color: #45a049;
         }
+        .results-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .group {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        .group:last-child {
+            border-bottom: none;
+        }
+        .group-header {
+            background-color: #f0f7ff;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .group-title {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .group-count {
+            background-color: #3498db;
+            color: white;
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 14px;
+        }
+        .question {
+            background-color: #f8f9fa;
+            border-left: 3px solid #4CAF50;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .no-results {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
-    <div class="success-message">🎉 File(s) Processed Successfully!</div>
-    <p><strong>Uploaded Files:</strong> {{ filename }}</p>
-    <a href="/uploads/{{ result_pdf }}" class="btn" download>Download Grouped PDF</a>
-    <a href="/" class="btn">Upload More</a>
+    <div class="header">
+        <div class="success-message">🎉 File(s) Processed Successfully!</div>
+        <div class="uploaded-files">
+            <strong>Uploaded Files:</strong> {{ filename }}
+        </div>
+        <div class="action-buttons">
+            <a href="/uploads/{{ result_pdf }}" class="btn" download>Download Grouped PDF</a>
+            <a href="/" class="btn">Upload More</a>
+        </div>
+    </div>
+
+    <div class="results-container">
+        <h2>Grouped Questions by Similarity</h2>
+
+        {% if groups %}
+            {% for group in groups %}
+                <div class="group">
+                    <div class="group-header">
+                        <span class="group-title">Group {{ loop.index }}</span>
+                        <span class="group-count">{{ group|length }} questions</span>
+                    </div>
+                    {% for question in group %}
+                        <div class="question">{{ question }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-results">No question groups were found. Try uploading different files.</div>
+        {% endif %}
+    </div>
 </body>
 </html>
