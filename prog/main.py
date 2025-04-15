@@ -5,6 +5,11 @@ import pytesseract
 from PIL import Image
 import io
 import docx
+import base64
+import matplotlib
+
+matplotlib.use('Agg')  # Use non-interactive backend
+import matplotlib.pyplot as plt
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from reportlab.lib.pagesizes import A4
@@ -47,7 +52,9 @@ def extract_text_from_scanned_pdf(file_path):
 
 def extract_questions(text):
     text = text.replace('\n', ' ')
-    text = re.sub(r'\b(this question|students.?attempt|consist[s]? of|carries|each question|compulsory)\b.?(?=\d+\s*[\.\)])', '', text, flags=re.IGNORECASE)
+    text = re.sub(
+        r'\b(this question|students.?attempt|consist[s]? of|carries|each question|compulsory)\b.?(?=\d+\s*[\.\)])', '',
+        text, flags=re.IGNORECASE)
     raw_questions = re.split(r'(?:\d+\s*[\.\)]\s*)', text)
 
     blacklist_keywords = [
@@ -71,16 +78,18 @@ def extract_questions(text):
             for sub in sub_parts:
                 sub = sub.strip()
                 sub = re.sub(r'\(?\s*\d+\s*(marks|mark)?\s*\)?', '', sub, flags=re.IGNORECASE)
-                sub = re.sub(r'\b(total|question[s]?|code|date|time|roll no|max:instructions|subject)\b.?:?.*', '', sub, flags=re.IGNORECASE)
-                sub = re.sub(r'\b(answer all questions|x=|question no\.? is compulsory)\b.*', '', sub, flags=re.IGNORECASE)
+                sub = re.sub(r'\b(total|question[s]?|code|date|time|roll no|max:instructions|subject)\b.?:?.*', '', sub,
+                             flags=re.IGNORECASE)
+                sub = re.sub(r'\b(answer all questions|x=|question no\.? is compulsory)\b.*', '', sub,
+                             flags=re.IGNORECASE)
 
                 sub = sub.strip()
 
                 if (len(sub) > 15 and
-                    re.search(r'[a-zA-Z]', sub) and
-                    len(sub.split()) > 4 and
-                    not any(keyword in sub.lower() for keyword in blacklist_keywords)):
-                        questions.append(sub)
+                        re.search(r'[a-zA-Z]', sub) and
+                        len(sub.split()) > 4 and
+                        not any(keyword in sub.lower() for keyword in blacklist_keywords)):
+                    questions.append(sub)
 
     return questions
 
@@ -140,6 +149,7 @@ def group_similar_questions(questions, threshold=0.75):
     groups.sort(key=lambda x: len(x), reverse=True)
     return groups
 
+
 def generate_pdf(groups, filename):
     c = canvas.Canvas(filename, pagesize=A4)
     width, height = A4
@@ -180,3 +190,67 @@ def generate_pdf(groups, filename):
 
 def split_text(text, max_chars):
     return [text[i:i + max_chars] for i in range(0, len(text), max_chars)]
+
+
+def generate_top_groups_chart(groups, output_dir):
+    """Generate a bar chart showing the top 10 groups by frequency"""
+    if not groups or len(groups) == 0:
+        return None
+
+    # Get top 10 groups by size
+    top_groups = groups[:10] if len(groups) > 10 else groups
+
+    # Prepare data for chart
+    counts = [len(group) for group in top_groups]
+
+    # Create labels - use truncated first question from each group
+    labels = []
+    for group in top_groups:
+        if not group:  # Skip empty groups
+            labels.append("Empty Group")
+            continue
+
+        # Get first question and truncate if needed
+        first_q = group[0]
+        if len(first_q) > 40:
+            first_q = first_q[:37] + "..."
+        labels.append(first_q)
+
+    # Set styling for the plot
+    plt.figure(figsize=(10, 6))
+    plt.style.use('ggplot')
+
+    # Create horizontal bar chart
+    bars = plt.barh(range(len(counts)), counts, color='#4361ee', alpha=0.8)
+
+    # Add data labels on the bars
+    for i, v in enumerate(counts):
+        plt.text(v + 0.1, i, str(v), va='center', fontweight='bold')
+
+    # Customize chart appearance
+    plt.yticks(range(len(labels)), labels, fontsize=9)
+    plt.xlabel('Number of Questions', fontweight='bold')
+    plt.title('Top 10 Question Groups by Frequency', fontweight='bold', fontsize=14)
+    plt.tight_layout()
+
+    # Add gradient to bars for visual appeal
+    for i, bar in enumerate(bars):
+        gradient = plt.cm.Blues(i / len(bars))
+        bar.set_facecolor(gradient)
+
+    # Save chart as PNG
+    chart_path = os.path.join(output_dir, 'top_groups_chart.png')
+    plt.savefig(chart_path, dpi=100, bbox_inches='tight')
+    plt.close()
+
+    # Return the path to the generated chart
+    return chart_path
+
+
+def get_chart_base64(chart_path):
+    """Convert the chart to base64 for embedding in HTML"""
+    if not chart_path or not os.path.exists(chart_path):
+        return None
+
+    with open(chart_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
