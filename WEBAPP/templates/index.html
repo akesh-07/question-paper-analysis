@@ -142,10 +142,57 @@
             gap: 15px;
         }
 
+        /* Hide the default file input */
         input[type="file"] {
-            padding: 10px;
+            display: none;
+        }
+
+        .custom-file-input {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            min-width: 200px;
+        }
+
+        .custom-file-input:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.25);
+        }
+
+        .custom-file-input:active {
+            transform: translateY(1px);
+        }
+
+        .custom-file-input::after {
+            content: "";
+            position: absolute;
             width: 100%;
-            max-width: 400px;
+            height: 100%;
+            top: 0;
+            left: -100%;
+            background: linear-gradient(90deg,
+                rgba(255, 255, 255, 0),
+                rgba(255, 255, 255, 0.2),
+                rgba(255, 255, 255, 0));
+            transition: var(--transition);
+        }
+
+        .custom-file-input:hover::after {
+            left: 100%;
+            transition: 0.7s;
         }
 
         .file-types {
@@ -237,6 +284,9 @@
                 </div>
                 <div class="file-input">
                     <input type="file" name="files" id="file" multiple required>
+                    <label for="file" class="custom-file-input">
+                        <i class="fas fa-folder-open"></i> Choose Files
+                    </label>
                     <div class="file-types">
                         <i class="fas fa-file-alt"></i> Supported formats: .txt, .pdf, .docx
                     </div>
