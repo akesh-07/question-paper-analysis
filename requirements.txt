@@ -1,3 +1,4 @@
+# Core dependencies
 PyMuPDF==1.23.19
 pytesseract==0.3.10
 Pillow==10.2.0
@@ -6,3 +7,10 @@ sentence-transformers==2.2.2
 scikit-learn==1.4.1.post1
 numpy==1.26.4
 huggingface_hub==0.11.1
+matplotlib==3.8.3  # Recommended version for compatibility with Pillow and modern features
+
+# Optional (used internally by sentence-transformers or scikit-learn)
+torch>=1.13
+transformers>=4.28
+scipy>=1.10.1
+reportlab==4.0.8
