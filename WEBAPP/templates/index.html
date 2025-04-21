@@ -300,5 +300,15 @@
             </div>
         </form>
     </div>
+<script>
+    const fileInput = document.getElementById("file");
+    const fileLabel = document.querySelector("label[for='file']");
+
+    fileInput.addEventListener("change", () => {
+        if (fileInput.files.length > 0) {
+            fileLabel.innerHTML = '<i class="fas fa-check-circle"></i> Files Uploaded';
+        }
+    });
+</script>
 </body>
 </html>
